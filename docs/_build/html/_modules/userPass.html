@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>userPass &mdash; System zgloszen hotelowych 1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=29a6c3e3"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            System zgloszen hotelowych
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">src</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">System zgloszen hotelowych</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">userPass</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for userPass</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">bcrypt</span>
+<span class="kn">import</span> <span class="nn">binascii</span>
+<span class="kn">import</span> <span class="nn">string</span> 
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">from</span> <span class="nn">config</span> <span class="kn">import</span> <span class="n">get_db</span><span class="p">,</span><span class="n">close_db</span>
+
+<div class="viewcode-block" id="UserPass">
+<a class="viewcode-back" href="../userPass.html#userPass.UserPass">[docs]</a>
+<span class="k">class</span> <span class="nc">UserPass</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>   <span class="c1">#wartosc domyslna argumentu password to pusty string dlatego nie jest wymagane podanie go w instancji</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The __init__ function is called when the class is instantiated.</span>
+<span class="sd">        It sets up the instance of the class, and takes arguments that are passed to it.</span>
+<span class="sd">        </span>
+<span class="sd">        </span>
+<span class="sd">        :param self: Represent the instance of the class</span>
+<span class="sd">        :param user: Set the value of the user attribute</span>
+<span class="sd">        :param password: Set the password attribute</span>
+<span class="sd">        :return: The instance of the class (self)</span>
+<span class="sd">        :doc-author: Trelent</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">=</span><span class="n">user</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">password</span><span class="o">=</span><span class="n">password</span> 
+
+<div class="viewcode-block" id="UserPass.get_user_info">
+<a class="viewcode-back" href="../userPass.html#userPass.UserPass.get_user_info">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_user_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The get_user_info function is used to get the user information from the database.</span>
+<span class="sd">            It takes in a username and returns a boolean value for whether or not that user exists, </span>
+<span class="sd">            as well as if they are an admin or not.</span>
+<span class="sd">        </span>
+<span class="sd">        :param self: Represent the instance of the class</span>
+<span class="sd">        :return: The user&#39;s id, is_valid and is_admin</span>
+<span class="sd">        :doc-author: Trelent</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">db</span><span class="o">=</span><span class="n">get_db</span><span class="p">()</span>
+        <span class="n">sql_query</span><span class="o">=</span><span class="s1">&#39;select * from users where name = ?;&#39;</span>
+        <span class="n">cur</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql_query</span><span class="p">,[</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="p">])</span>
+        <span class="n">db_user</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>  
+          
+
+        <span class="k">if</span> <span class="n">db_user</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_valid</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_admin</span> <span class="o">=</span> <span class="kc">False</span>  
+        <span class="k">elif</span> <span class="n">db_user</span><span class="p">[</span><span class="s1">&#39;is_active&#39;</span><span class="p">]</span><span class="o">!=</span><span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_valid</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_admin</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_valid</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_admin</span> <span class="o">=</span> <span class="n">db_user</span><span class="p">[</span><span class="s1">&#39;is_admin&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">user_id</span> <span class="o">=</span> <span class="n">db_user</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span></div>
+
+
+    <span class="c1">#generowanie losowych nazw user i password 3 znakowych w kodzie ascii</span>
+<div class="viewcode-block" id="UserPass.get_random_user_passw">
+<a class="viewcode-back" href="../userPass.html#userPass.UserPass.get_random_user_passw">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_random_user_passw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The get_random_user_passw function generates a random username and password.</span>
+<span class="sd">            The function uses the string module to generate a random lowercase letter for the username, </span>
+<span class="sd">            and then concatenates three of these letters together to form the username. </span>
+<span class="sd">            </span>
+<span class="sd">            For generating the password, we use both uppercase and lowercase letters from string module.</span>
+<span class="sd">        </span>
+<span class="sd">        :param self: Refer to the current instance of a class</span>
+<span class="sd">        :return: The user and password as a string</span>
+<span class="sd">        :doc-author: Trelent</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">random_user</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">ascii_lowercase</span><span class="p">)</span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">random_user</span>
+        
+        <span class="n">passw_characters</span><span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">ascii_letters</span>
+        <span class="n">random_password</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">passw_characters</span><span class="p">)</span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="n">random_password</span></div>
+
+        
+<div class="viewcode-block" id="UserPass.hashed_passwd">
+<a class="viewcode-back" href="../userPass.html#userPass.UserPass.hashed_passwd">[docs]</a>
+    <span class="k">def</span> <span class="nf">hashed_passwd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The hashed_passwd function takes the password from the user and encodes it into a byte string.</span>
+<span class="sd">        Then, using bcrypt&#39;s hashpw function, we generate a salt for our password and then hash it.</span>
+<span class="sd">        The hashed value is returned to be stored in our database.</span>
+<span class="sd">        </span>
+<span class="sd">        :param self: Make the method a bound method, which means that it can be called on an instance of the class</span>
+<span class="sd">        :return: The hashed password</span>
+<span class="sd">        :doc-author: Trelent</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">passw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">password</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+        <span class="n">hashed</span> <span class="o">=</span> <span class="n">bcrypt</span><span class="o">.</span><span class="n">hashpw</span><span class="p">(</span><span class="n">passw</span><span class="p">,</span><span class="n">bcrypt</span><span class="o">.</span><span class="n">gensalt</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">hashed</span></div>
+
+    
+    <span class="c1">#metody weryfikujące poprawnosc nazwy uzytkownika i haslo</span>
+    
+<div class="viewcode-block" id="UserPass.check_passw">
+<a class="viewcode-back" href="../userPass.html#userPass.UserPass.check_passw">[docs]</a>
+    <span class="k">def</span> <span class="nf">check_passw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">checked_passw</span><span class="p">,</span> <span class="n">stored_passw</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The check_passw function takes two arguments:</span>
+<span class="sd">            1. checked_passw - the password that is being checked against the stored password</span>
+<span class="sd">            2. stored_passw - the hashed and salted version of a user&#39;s password, which is retrieved from </span>
+<span class="sd">                              our database</span>
+<span class="sd">        </span>
+<span class="sd">        :param self: Represent the instance of the class</span>
+<span class="sd">        :param checked_passw: Store the password that is entered by the user</span>
+<span class="sd">        :param stored_passw: Store the password that is hashed and salted</span>
+<span class="sd">        :return: A boolean value</span>
+<span class="sd">        :doc-author: Trelent</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">checked_passw</span> <span class="o">=</span> <span class="n">checked_passw</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">bcrypt</span><span class="o">.</span><span class="n">checkpw</span><span class="p">(</span><span class="n">checked_passw</span><span class="p">,</span> <span class="n">stored_passw</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+    
+<div class="viewcode-block" id="UserPass.login_user">
+<a class="viewcode-back" href="../userPass.html#userPass.UserPass.login_user">[docs]</a>
+    <span class="k">def</span> <span class="nf">login_user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The login_user function is used to authenticate a user.</span>
+<span class="sd">            It takes the username and password as input, and returns a record of the user if they are authenticated.</span>
+<span class="sd">            If not, it returns None.</span>
+<span class="sd">        </span>
+<span class="sd">        :param self: Refer to the current instance of the class</span>
+<span class="sd">        :return: The user record if the login is successful</span>
+<span class="sd">        :doc-author: Trelent</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">db</span><span class="o">=</span><span class="n">get_db</span><span class="p">()</span>
+        <span class="n">sql_statement</span><span class="o">=</span><span class="s1">&#39; select id,name,password,is_active,is_admin from users where name=? &#39;</span>
+        <span class="n">cur</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql_statement</span><span class="p">,[</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="p">])</span>
+        <span class="n">user_record</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="n">user_record</span><span class="o">!=</span><span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_passw</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">password</span><span class="p">,</span><span class="n">user_record</span><span class="p">[</span><span class="s1">&#39;password&#39;</span><span class="p">]):</span>
+            <span class="k">return</span> <span class="n">user_record</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span><span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">password</span><span class="o">=</span><span class="kc">None</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+</div>
+
+        
+    
+    
+
+        
+        
+    
+    
+        
+    
+        
+    
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Marek.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

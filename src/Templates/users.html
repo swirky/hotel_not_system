@@ -1,0 +1,51 @@
+{%extends "baza.html"%}
+{%from "macros.html" import show_flash %} 
+
+{% block content %}
+{{ show_flash() }}
+<table>
+    <thead>
+        <tr>
+            <th>ID użytkownika</th>
+            <th>Nazwa użytkownika</th>
+            <th>Konto aktywne</th>
+            <th>Konto admin</th>
+        </tr>
+    </thead>
+    <tbody>
+        {%for user in user_list%}
+        <tr>
+            <td>{{user.id}}</td>
+            <td>{{user.name}}</td>
+            <td>
+                <a href="{{url_for('user_status_change', action='active', user_name=user.name)}}">
+                {%if user.is_active%}
+                    &check;
+                {%else%}
+                    &#x25a2;
+                {%endif%}
+                </a>
+            </td>
+            <td>
+                <a href="{{url_for('user_status_change', action='admin', user_name=user.name)}}">
+                {%if user.is_admin%}  
+                    &check;
+                {%else%}
+                    &#x25a2;
+                {%endif%}
+                </a>    
+            </td>
+
+            <td>   
+                <form action="{{url_for('delete_user',user_name=user.name)}}" method="post" style="display: inline;" id="confirmDeleteForm">
+                <button type='submit' class="btn btn-danger btn-sm">Delete</button>  
+                </form>
+            </td>
+        </tr>
+        {%endfor%}
+       
+    </tbody>
+</table>
+
+
+{%endblock%}

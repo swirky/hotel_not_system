@@ -1,0 +1,14 @@
+{% extends "baza.html" %}
+{%from "macros.html" import show_flash%}
+
+{% block title%}
+Strona główna
+{%endblock%}
+
+{% block content %}
+{{ show_flash() }}
+<h1>Witaj <strong>{{ session['user'] if 'user' in session}}</strong> na stronie zgłoszeń w naszym hotelu</h1>
+
+
+
+{%endblock%}

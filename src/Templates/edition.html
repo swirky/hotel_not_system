@@ -1,0 +1,31 @@
+{% extends "baza.html" %}
+
+{%block title%}
+Edycja zgloszenia
+{%endblock%}
+
+{% block content %}
+
+<form id="formularz1" action = "{{ url_for('edition', notification_id=zgloszenie.id) }}" method="POST">
+
+    <label for="room_number">Numer pokoju</label> <br>
+    <input type="text" id="room_number" name="numer_pokoju" value="{{zgloszenie.room_number}}"><br>
+
+    <label for="guest_name">Nazwisko zgłaszającego</label> <br>
+    <input type="text" id="guest_number" name="nazwa_goscia" value="{{zgloszenie.guest_name}}"><br>
+
+    <label for="wybor">Wybierz priorytet:</label> <br>
+    <select id="wybor" name="priorytet"> <br>
+        <option value="high">High</option>
+        <option value="medium">medium</option>
+        <option value="low">NOT URGENT</option>
+    </select> <br>
+
+    <label for="notification">Skarga</label> <br>
+    <textarea id="notification" name="skarga" cols="50" rows="4">{{zgloszenie.notification}}</textarea><br>
+
+    <input type="submit" value="Edytuj">
+
+</form>    
+
+{% endblock %}

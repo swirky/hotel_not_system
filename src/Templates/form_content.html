@@ -1,0 +1,19 @@
+{%extends "baza.html"%}
+{%from "macros.html" import show_flash %} 
+
+{% block content %}
+
+    {{ show_flash() }}
+    <h2>Zgłoszenie zostało wysłane!</h2> <br>
+    {% if priorytet=='high'%}
+        <h1>Priorytet wysoki!</h1>
+    {% elif priorytet=='medium'%}
+        <h1>Priorytet normalny!</h1>
+    {% elif priorytet=='low'%}
+        <h1>Priorytet niski!</h1>
+    {%endif%}
+    <h3>Twój numer pokoju: {{numer_pokoju}}</h3>
+    <h3>Nazwisko zgłaszającego: {{nazw_zglaszajacego}} </h3>
+    <h3><strong>Tresc skargi:</strong> {{skarga}}</h3>
+
+{%endblock%}

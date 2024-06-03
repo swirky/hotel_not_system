@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app &mdash; System zgloszen hotelowych 1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=29a6c3e3"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            System zgloszen hotelowych
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">src</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">System zgloszen hotelowych</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">app</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span><span class="p">,</span><span class="n">render_template</span><span class="p">,</span><span class="n">url_for</span><span class="p">,</span><span class="n">request</span><span class="p">,</span><span class="n">flash</span><span class="p">,</span><span class="n">g</span><span class="p">,</span><span class="n">redirect</span><span class="p">,</span><span class="n">session</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">userPass</span> <span class="kn">import</span> <span class="n">UserPass</span>
+<span class="kn">from</span> <span class="nn">userFactory</span> <span class="kn">import</span> <span class="n">UserFactory</span>
+<span class="kn">from</span> <span class="nn">config</span> <span class="kn">import</span> <span class="n">app</span><span class="p">,</span><span class="n">app_info</span>
+<span class="kn">from</span> <span class="nn">config</span> <span class="kn">import</span> <span class="n">get_db</span><span class="p">,</span><span class="n">close_db</span>
+<span class="kn">import</span> <span class="nn">sqlite3</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">string</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">binascii</span>
+
+        
+<div class="viewcode-block" id="init_app">
+<a class="viewcode-back" href="../app.html#app.init_app">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/init_app&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">init_app</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The init_app function is used to initialize the application.</span>
+<span class="sd">    It checks if there are any active users in the database, and if not, it creates a new user with admin privileges.</span>
+<span class="sd">    </span>
+<span class="sd">    </span>
+<span class="sd">    :return: A redirect to the index page</span>
+<span class="sd">    :doc-author: Trelent</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">db</span><span class="o">=</span><span class="n">get_db</span><span class="p">()</span>
+    <span class="n">sql_statement</span><span class="o">=</span><span class="s1">&#39;select count(*) as cnt from users where is_active and is_admin;&#39;</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql_statement</span><span class="p">)</span>
+    <span class="n">active_admins</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+    
+    <span class="k">if</span> <span class="n">active_admins</span><span class="o">!=</span><span class="kc">None</span> <span class="ow">and</span> <span class="n">active_admins</span><span class="p">[</span><span class="s1">&#39;cnt&#39;</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Aplikacja gotowa do użycia. Znaleziono aktywnych użytkowników!&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">admin_user</span> <span class="o">=</span> <span class="n">UserFactory</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="s2">&quot;admin&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">admin_user</span><span class="o">.</span><span class="n">get_random_user_passw</span><span class="p">()</span>
+        <span class="n">sql_statement</span> <span class="o">=</span> <span class="s1">&#39;insert into users (name, password, is_active, is_admin) values (?, ?, True, True)&#39;</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql_statement</span><span class="p">,</span> <span class="p">[</span><span class="n">admin_user</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="n">admin_user</span><span class="o">.</span><span class="n">hashed_passwd</span><span class="p">()])</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Admin </span><span class="si">{}</span><span class="s1"> z hasłem </span><span class="si">{}</span><span class="s1"> został dodany&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">admin_user</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="n">admin_user</span><span class="o">.</span><span class="n">password</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">))</span></div>
+
+    
+
+<div class="viewcode-block" id="index">
+<a class="viewcode-back" href="../app.html#app.index">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">index</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The index function is the default function that gets called when a user visits</span>
+<span class="sd">    the root of the website. It renders the index.html template, which contains all</span>
+<span class="sd">    of our HTML code for displaying content on this page.</span>
+<span class="sd">    </span>
+<span class="sd">    :return: A rendered template</span>
+<span class="sd">    :doc-author: Trelent</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">login</span> <span class="o">=</span> <span class="n">UserPass</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">))</span>
+    <span class="n">login</span><span class="o">.</span><span class="n">get_user_info</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;index.html&#39;</span><span class="p">,</span> <span class="n">active_menu</span><span class="o">=</span><span class="s1">&#39;Strona główa&#39;</span><span class="p">,</span> <span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="login">
+<a class="viewcode-back" href="../app.html#app.login">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/login&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">login</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The login function is used to log in a user.</span>
+<span class="sd">        It takes no arguments and returns nothing.</span>
+<span class="sd">    </span>
+<span class="sd">    </span>
+<span class="sd">    :return: The rendered template login</span>
+<span class="sd">    :doc-author: Trelent</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">login</span> <span class="o">=</span> <span class="n">UserPass</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">))</span>
+    <span class="n">login</span><span class="o">.</span><span class="n">get_user_info</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span><span class="o">==</span><span class="s2">&quot;GET&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;login.html&quot;</span><span class="p">,</span> <span class="n">active_menu</span><span class="o">=</span><span class="s1">&#39;login&#39;</span><span class="p">,</span> <span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">&#39;user_name&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">:</span>
+            <span class="n">user_name</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">user_name</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;user_name&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s1">&#39;user_pass&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">:</span>
+            <span class="n">user_pass</span><span class="o">=</span><span class="s1">&#39;&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">user_pass</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;user_pass&#39;</span><span class="p">]</span>
+            
+        <span class="n">login</span> <span class="o">=</span> <span class="n">UserPass</span><span class="p">(</span><span class="n">user_name</span><span class="p">,</span><span class="n">user_pass</span><span class="p">)</span>
+        <span class="n">login_record</span> <span class="o">=</span> <span class="n">login</span><span class="o">.</span><span class="n">login_user</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="n">login_record</span><span class="o">!=</span><span class="kc">None</span><span class="p">:</span>
+            <span class="n">session</span><span class="p">[</span><span class="s1">&#39;user&#39;</span><span class="p">]</span><span class="o">=</span> <span class="n">user_name</span>
+            <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Zalogowano pomyślnie! Witaj </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">user_name</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Logowanie nie powiodło się. Spróbuj ponownie.&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;login.html&#39;</span><span class="p">,</span> <span class="n">active_menu</span><span class="o">=</span><span class="s1">&#39;login&#39;</span><span class="p">,</span><span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="logout">
+<a class="viewcode-back" href="../app.html#app.logout">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/logout&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">logout</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The logout function is used to logout the user from the session.</span>
+<span class="sd">        It checks if there is a &#39;user&#39; in session, and if so it pops it out of</span>
+<span class="sd">        the session and flashes a message saying that you have been logged out.</span>
+<span class="sd">    </span>
+<span class="sd">    </span>
+<span class="sd">    :return: A redirect to the login page</span>
+<span class="sd">    :doc-author: Trelent</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s1">&#39;user&#39;</span> <span class="ow">in</span> <span class="n">session</span><span class="p">:</span>
+        <span class="n">session</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Wylogowano&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;login&#39;</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="users">
+<a class="viewcode-back" href="../app.html#app.users">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/users&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">users</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The users function is used to display a list of all users in the database.</span>
+<span class="sd">    It also checks if the user is logged in as an admin, and if not, redirects them to login page.</span>
+<span class="sd">    </span>
+<span class="sd">    :return: A rendered template</span>
+<span class="sd">    :doc-author: Trelent</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">login</span> <span class="o">=</span> <span class="n">UserPass</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">))</span>
+    <span class="n">login</span><span class="o">.</span><span class="n">get_user_info</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">login</span><span class="o">.</span><span class="n">is_admin</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
+        <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Nie jesteś zalogowany na konto administratora. Zaloguj się aby odwiedzić tę stronę!&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;login&#39;</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">db</span><span class="o">=</span><span class="n">get_db</span><span class="p">()</span>
+        <span class="n">sql_command</span><span class="o">=</span><span class="s1">&#39;select * from users;&#39;</span>
+        <span class="n">cur</span><span class="o">=</span><span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql_command</span><span class="p">)</span>
+        <span class="n">users</span><span class="o">=</span><span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;users.html&#39;</span><span class="p">,</span> <span class="n">user_list</span><span class="o">=</span><span class="n">users</span><span class="p">,</span> <span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="user_status_change">
+<a class="viewcode-back" href="../app.html#app.user_status_change">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/user_status_change/&lt;action&gt;/&lt;user_name&gt;&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">user_status_change</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">user_name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The user_status_change function is called when the user clicks on a button to change the status of another user.</span>
+<span class="sd">    The function takes two arguments: action and user_name. The action argument can be either &#39;active&#39; or &#39;admin&#39;. </span>
+<span class="sd">    If it&#39;s active, then we toggle whether that particular user is active or not by adding 1 to their current value mod 2 (which will flip between 0 and 1). </span>
+<span class="sd">    If it&#39;s admin, then we do the same thing but for their admin status instead.</span>
+<span class="sd">    </span>
+<span class="sd">    :param action: Determine if the user is being made active or admin</span>
+<span class="sd">    :param user_name: Identify the user that is to be changed</span>
+<span class="sd">    :return: A redirect to the users page</span>
+<span class="sd">    :doc-author: Trelent</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;user&#39;</span> <span class="ow">in</span> <span class="n">session</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;login&#39;</span><span class="p">))</span>
+    <span class="n">login</span> <span class="o">=</span> <span class="n">session</span><span class="p">[</span><span class="s1">&#39;user&#39;</span><span class="p">]</span>
+    
+    <span class="n">db</span><span class="o">=</span><span class="n">get_db</span><span class="p">()</span>
+    
+    <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="s1">&#39;active&#39;</span><span class="p">:</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;update users set is_active =(is_active + 1) % 2 where name= ? and name &lt;&gt; ?&#39;</span><span class="p">,[</span><span class="n">user_name</span><span class="p">,</span><span class="n">login</span><span class="p">])</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span><span class="s1">&#39;admin&#39;</span><span class="p">:</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;update users set is_admin = (is_admin + 1) % 2 where name= ? and name &lt;&gt; ?&#39;</span><span class="p">,[</span><span class="n">user_name</span><span class="p">,</span><span class="n">login</span><span class="p">])</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;users&#39;</span><span class="p">))</span></div>
+
+        
+
+<div class="viewcode-block" id="edit_user">
+<a class="viewcode-back" href="../app.html#app.edit_user">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/edit_user/&lt;user_name&gt;&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">edit_user</span><span class="p">(</span><span class="n">user_name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The edit_user function allows you to edit a user&#39;s information.</span>
+<span class="sd">        </span>
+<span class="sd">    </span>
+<span class="sd">    :param user_name: Identify which user to edit</span>
+<span class="sd">    :return: &#39;not implemented&#39;</span>
+<span class="sd">    :doc-author: Trelent</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="s1">&#39;not implemented&#39;</span></div>
+
+
+
+<div class="viewcode-block" id="delete_user">
+<a class="viewcode-back" href="../app.html#app.delete_user">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/user_delete/&lt;user_name&gt;&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">delete_user</span><span class="p">(</span><span class="n">user_name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The delete_user function deletes a user from the database.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            user_name (str): The name of the user to be deleted.</span>
+<span class="sd">    </span>
+<span class="sd">    </span>
+<span class="sd">    :param user_name: Pass the name of the user to be deleted</span>
+<span class="sd">    :return: A redirect to the users page</span>
+<span class="sd">    :doc-author: Trelent</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span><span class="o">==</span><span class="s1">&#39;POST&#39;</span><span class="p">:</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;user&#39;</span> <span class="ow">in</span> <span class="n">session</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="n">login</span><span class="p">))</span>
+        <span class="n">login</span> <span class="o">=</span> <span class="n">session</span><span class="p">[</span><span class="s1">&#39;user&#39;</span><span class="p">]</span>
+        
+        <span class="n">db</span><span class="o">=</span><span class="n">get_db</span><span class="p">()</span>
+        <span class="n">sql_zapytanie</span><span class="o">=</span><span class="s1">&#39;DELETE from users where name=?;&#39;</span>
+        <span class="k">if</span> <span class="n">user_name</span><span class="o">!=</span><span class="n">login</span><span class="p">:</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql_zapytanie</span><span class="p">,[</span><span class="n">user_name</span><span class="p">])</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Nie można usunąć konta na którym jesteś aktualnie zalogowany!&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;users&#39;</span><span class="p">))</span>
+        
+        <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Usunieto uzytkownika </span><span class="si">{}</span><span class="s1">!&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">user_name</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;users&#39;</span><span class="p">))</span></div>
+
+
+        
+<div class="viewcode-block" id="new_user">
+<a class="viewcode-back" href="../app.html#app.new_user">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/new_user&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">new_user</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The new_user function is responsible for creating a new user.</span>
+<span class="sd">    It first checks if the user is logged in as an admin, and if not, redirects them to the login page.</span>
+<span class="sd">    If they are logged in as an admin, it then checks whether or not there was a POST request made to this function.  If so, it creates a new User object using the UserFactory class and inserts that into our database.</span>
+<span class="sd">    </span>
+<span class="sd">    :return: A redirect to the users function</span>
+<span class="sd">    :doc-author: Trelent</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">login</span> <span class="o">=</span> <span class="n">UserPass</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">))</span>
+    <span class="n">login</span><span class="o">.</span><span class="n">get_user_info</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">login</span><span class="o">.</span><span class="n">is_admin</span><span class="p">:</span>
+        <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Nie jesteś zalogowany na konto administratora. Zaloguj się aby odwiedzić tę stronę!&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;login&#39;</span><span class="p">))</span>
+    
+    <span class="n">db</span><span class="o">=</span><span class="n">get_db</span><span class="p">()</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="kc">None</span> 
+    <span class="n">user</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1">#tablica do przechowywania danych z formularza</span>
+    
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span><span class="s1">&#39;GET&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;new_user.html&#39;</span><span class="p">,</span> <span class="n">active_menu</span><span class="o">=</span><span class="s1">&#39;users&#39;</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="n">user</span><span class="p">,</span> <span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">user</span><span class="p">[</span><span class="s1">&#39;user_name&#39;</span><span class="p">]</span> <span class="o">=</span><span class="s2">&quot;&quot;</span> <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;user_name&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span> <span class="k">else</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;user_name&#39;</span><span class="p">]</span>
+        <span class="n">user</span><span class="p">[</span><span class="s1">&#39;user_password&#39;</span><span class="p">]</span><span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;user_password&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span> <span class="k">else</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;user_password&#39;</span><span class="p">]</span>
+        <span class="n">user</span><span class="p">[</span><span class="s1">&#39;user_type&#39;</span><span class="p">]</span><span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;user_type&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span> <span class="k">else</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;user_type&#39;</span><span class="p">]</span>
+    
+    <span class="n">sql_query</span><span class="o">=</span><span class="s1">&#39;select count(*) as cnt from users where name=?;&#39;</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql_query</span><span class="p">,[</span><span class="n">user</span><span class="p">[</span><span class="s1">&#39;user_name&#39;</span><span class="p">]])</span>
+    <span class="n">record</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+    <span class="n">is_user_name_unique</span> <span class="o">=</span> <span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s1">&#39;cnt&#39;</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">user</span><span class="p">[</span><span class="s1">&#39;user_name&#39;</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+        <span class="n">message</span><span class="o">=</span><span class="s1">&#39;Nie podano nazwy użytkownika!&#39;</span>
+    <span class="k">elif</span> <span class="n">user</span><span class="p">[</span><span class="s1">&#39;user_password&#39;</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+        <span class="n">message</span><span class="o">=</span><span class="s1">&#39;Nie podano hasła!&#39;</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="n">is_user_name_unique</span><span class="p">:</span>
+        <span class="n">message</span><span class="o">=</span><span class="s2">&quot;Konto z tą nazwą użytkownika już istnieje!&quot;</span>
+    <span class="k">elif</span> <span class="n">user</span><span class="p">[</span><span class="s1">&#39;user_type&#39;</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+        <span class="n">message</span><span class="o">=</span><span class="s2">&quot;Nie podano typu użytkownika (standard lub admin)&quot;</span>
+        
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">message</span><span class="p">:</span>
+        <span class="n">new_user</span> <span class="o">=</span> <span class="n">UserFactory</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">user</span><span class="p">[</span><span class="s1">&#39;user_type&#39;</span><span class="p">],</span><span class="n">user</span><span class="p">[</span><span class="s1">&#39;user_name&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">[</span><span class="s1">&#39;user_password&#39;</span><span class="p">])</span>
+        
+        <span class="n">sql_statement</span><span class="o">=</span><span class="s1">&#39;insert into users (name,password,is_active,is_admin) values (?,?,?,?)&#39;</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql_statement</span><span class="p">,[</span><span class="n">new_user</span><span class="o">.</span><span class="n">user</span><span class="p">,</span><span class="n">new_user</span><span class="o">.</span><span class="n">hashed_passwd</span><span class="p">(),</span> <span class="n">new_user</span><span class="o">.</span><span class="n">is_active</span><span class="p">,</span><span class="n">new_user</span><span class="o">.</span><span class="n">is_admin</span><span class="p">])</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;User </span><span class="si">{}</span><span class="s1"> has been created&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">user</span><span class="p">[</span><span class="s1">&#39;user_name&#39;</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;users&#39;</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Correct error: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;new_user.html&#39;</span><span class="p">,</span> <span class="n">active_menu</span><span class="o">=</span><span class="s1">&#39;users&#39;</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="n">user</span><span class="p">)</span></div>
+
+        
+        
+<div class="viewcode-block" id="form">
+<a class="viewcode-back" href="../app.html#app.form">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/form&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">form</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The form function is responsible for handling the form.html template,</span>
+<span class="sd">    which allows users to submit a notification about a problem in their room.</span>
+<span class="sd">    The function checks if the user is logged in and if not, redirects them to </span>
+<span class="sd">    the login page with an appropriate flash message. If they are logged in, </span>
+<span class="sd">    it renders the form template and waits for POST requests from it.</span>
+<span class="sd">    </span>
+<span class="sd">    :return: A redirect to the form_content function</span>
+<span class="sd">    :doc-author: Trelent</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">login</span> <span class="o">=</span> <span class="n">UserPass</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">))</span>
+    <span class="n">login</span><span class="o">.</span><span class="n">get_user_info</span><span class="p">()</span>
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">login</span><span class="o">.</span><span class="n">is_valid</span><span class="p">:</span>
+        <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Nie jesteś zalogowany na konto użytkownika. Zaloguj się aby odwiedzić tę stronę!&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;login&#39;</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>    
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;GET&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;form.html&#39;</span><span class="p">,</span> <span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">numer_pokoju</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;numer_pokoju&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">nazwisko_zlgaszajacego</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;nazwa_goscia&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">priorytet</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;priorytet&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">notatka</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;skarga&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            
+            <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Zgłoszenie zostało wysłane poprawnie!&#39;</span><span class="p">)</span>
+            
+            <span class="n">db</span> <span class="o">=</span> <span class="n">get_db</span><span class="p">()</span>
+            <span class="n">sql_command</span> <span class="o">=</span> <span class="s1">&#39;INSERT INTO notifications (room_number, guest_name, notification, priority, user_id) VALUES (?, ?, ?, ?, ?)&#39;</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql_command</span><span class="p">,</span> <span class="p">[</span><span class="n">numer_pokoju</span><span class="p">,</span> <span class="n">nazwisko_zlgaszajacego</span><span class="p">,</span> <span class="n">notatka</span><span class="p">,</span> <span class="n">priorytet</span><span class="p">,</span> <span class="n">login</span><span class="o">.</span><span class="n">user_id</span><span class="p">])</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+            
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;form_content&#39;</span><span class="p">,</span> 
+                                    <span class="n">priorytet</span><span class="o">=</span><span class="n">priorytet</span><span class="p">,</span> 
+                                    <span class="n">skarga</span><span class="o">=</span><span class="n">notatka</span><span class="p">,</span> 
+                                    <span class="n">numer_pokoju</span><span class="o">=</span><span class="n">numer_pokoju</span><span class="p">,</span> 
+                                    <span class="n">nazw_zglaszajacego</span><span class="o">=</span><span class="n">nazwisko_zlgaszajacego</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="form_content">
+<a class="viewcode-back" href="../app.html#app.form_content">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/form_content&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">form_content</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The form_content function is used to render the form_content.html template,</span>
+<span class="sd">    which contains a form that allows users to submit complaints about their hotel </span>
+<span class="sd">    rooms. The function takes in four arguments: priorytet, skarga, numer_pokoju and </span>
+<span class="sd">    nazwisko_zlgaszajacego. These are all strings that will be passed into the HTML </span>
+<span class="sd">    template as variables.</span>
+<span class="sd">    </span>
+<span class="sd">    :return: A rendered template</span>
+<span class="sd">    :doc-author: Trelent</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">login</span> <span class="o">=</span> <span class="n">UserPass</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">))</span>
+    <span class="n">login</span><span class="o">.</span><span class="n">get_user_info</span><span class="p">()</span>
+    
+    <span class="n">priorytet</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;priorytet&#39;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">notatka</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;skarga&#39;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">numer_pokoju</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;numer_pokoju&#39;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">nazwisko_zlgaszajacego</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;nazw_zglaszajacego&#39;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;form_content.html&#39;</span><span class="p">,</span> 
+                           <span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">,</span> 
+                           <span class="n">priorytet</span><span class="o">=</span><span class="n">priorytet</span><span class="p">,</span> 
+                           <span class="n">skarga</span><span class="o">=</span><span class="n">notatka</span><span class="p">,</span> 
+                           <span class="n">numer_pokoju</span><span class="o">=</span><span class="n">numer_pokoju</span><span class="p">,</span> 
+                           <span class="n">nazw_zglaszajacego</span><span class="o">=</span><span class="n">nazwisko_zlgaszajacego</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="notifications">
+<a class="viewcode-back" href="../app.html#app.notifications">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/notifications&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">notifications</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The notifications function is responsible for displaying all notifications in the database.</span>
+<span class="sd">    It also checks if the user is logged in and if he has admin rights. If not, it displays only his own notifications.</span>
+<span class="sd">    </span>
+<span class="sd">    :return: The notifications</span>
+<span class="sd">    :doc-author: Trelent</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">login</span> <span class="o">=</span> <span class="n">UserPass</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">))</span>
+    <span class="n">login</span><span class="o">.</span><span class="n">get_user_info</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">login</span><span class="o">.</span><span class="n">is_valid</span><span class="p">:</span>
+        <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Nie jesteś zalogowany na konto użytkownika. Zaloguj się aby odwiedzić tę stronę!&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;login&#39;</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>    
+        <span class="n">db</span><span class="o">=</span><span class="n">get_db</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">login</span><span class="o">.</span><span class="n">is_admin</span><span class="p">:</span>
+            <span class="n">sql_command</span><span class="o">=</span><span class="s1">&#39;SELECT notifications.id, notifications.room_number, notifications.guest_name, notifications.notification, notifications.priority,notifications.user_id, users.name as name FROM notifications JOIN users ON notifications.user_id = users.id;&#39;</span>
+            <span class="n">cur</span><span class="o">=</span><span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql_command</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sql_command</span><span class="o">=</span><span class="s1">&#39;select * from notifications where user_id=?;&#39;</span>
+            <span class="n">cur</span><span class="o">=</span><span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql_command</span><span class="p">,[</span><span class="n">login</span><span class="o">.</span><span class="n">user_id</span><span class="p">])</span>
+            
+        
+        <span class="n">notyfikacje</span><span class="o">=</span><span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;notifications.html&#39;</span><span class="p">,</span> <span class="n">zgloszenia</span><span class="o">=</span><span class="n">notyfikacje</span><span class="p">,</span> <span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="delete_not">
+<a class="viewcode-back" href="../app.html#app.delete_not">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/delete/&lt;int:notification_id&gt;&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">delete_not</span><span class="p">(</span><span class="n">notification_id</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The delete_not function deletes a notification from the database.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            notification_id (int): The id of the notification to be deleted.</span>
+<span class="sd">    </span>
+<span class="sd">    :param notification_id: Delete the notification with a given id</span>
+<span class="sd">    :return: The redirect function, which returns a response object</span>
+<span class="sd">    :doc-author: Trelent</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">login</span> <span class="o">=</span> <span class="n">UserPass</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">))</span>
+    <span class="n">login</span><span class="o">.</span><span class="n">get_user_info</span><span class="p">()</span>
+
+    <span class="n">db</span><span class="o">=</span><span class="n">get_db</span><span class="p">()</span>
+    <span class="n">sql_zapytanie</span><span class="o">=</span><span class="s1">&#39;DELETE from notifications where id=?;&#39;</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql_zapytanie</span><span class="p">,[</span><span class="n">notification_id</span><span class="p">])</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Usunięto zgloszenie!&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;notifications&#39;</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="edition">
+<a class="viewcode-back" href="../app.html#app.edition">[docs]</a>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/edition/&lt;int:notification_id&gt;&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">edition</span><span class="p">(</span><span class="n">notification_id</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The edition function is responsible for editing the notification.</span>
+<span class="sd">    It takes one argument, which is the id of a notification to be edited.</span>
+<span class="sd">    The function first checks if user is logged in and if not, redirects him to login page. </span>
+<span class="sd">    If he&#39;s logged in it renders edition template with data from database (notification). </span>
+<span class="sd">    When user submits form with new data, this function updates database.</span>
+<span class="sd">    </span>
+<span class="sd">    :param notification_id: Identify the notification that is being edited</span>
+<span class="sd">    :return: The edition</span>
+<span class="sd">    :doc-author: Trelent</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">login</span> <span class="o">=</span> <span class="n">UserPass</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">))</span>
+    <span class="n">login</span><span class="o">.</span><span class="n">get_user_info</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">login</span><span class="o">.</span><span class="n">is_valid</span><span class="p">:</span>
+        <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Nie jesteś zalogowany na konto użytkownika. Zaloguj się aby odwiedzić tę stronę!&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;login&#39;</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;GET&#39;</span><span class="p">:</span>
+            <span class="n">db</span><span class="o">=</span><span class="n">get_db</span><span class="p">()</span>
+            <span class="n">sql_zapytanie</span><span class="o">=</span><span class="s1">&#39;select id, room_number, guest_name, notification, priority from notifications where id=?&#39;</span>
+            <span class="n">cur</span><span class="o">=</span><span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql_zapytanie</span><span class="p">,[</span><span class="n">notification_id</span><span class="p">])</span>
+            <span class="n">notyfikacja</span><span class="o">=</span><span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;edition.html&#39;</span><span class="p">,</span> <span class="n">zgloszenie</span><span class="o">=</span><span class="n">notyfikacja</span><span class="p">,</span> <span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">numer_pokoju</span><span class="o">=</span><span class="mi">0</span>
+            
+            <span class="k">if</span> <span class="s1">&#39;numer_pokoju&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">:</span>
+                <span class="n">numer_pokoju</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;numer_pokoju&#39;</span><span class="p">]</span>
+                
+            <span class="n">nazwisko_zlgaszajacego</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+            <span class="k">if</span> <span class="s1">&#39;nazwa_goscia&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">:</span>
+                <span class="n">nazwisko_zlgaszajacego</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;nazwa_goscia&#39;</span><span class="p">]</span>
+                
+            
+            <span class="k">if</span> <span class="s1">&#39;priorytet&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">:</span>
+                <span class="n">priorytet</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;priorytet&#39;</span><span class="p">]</span>
+                
+            <span class="n">notatka</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+            <span class="k">if</span> <span class="s1">&#39;skarga&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">:</span>
+                <span class="n">notatka</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;skarga&#39;</span><span class="p">]</span>
+                
+            <span class="n">db</span><span class="o">=</span><span class="n">get_db</span><span class="p">()</span>
+            <span class="n">sql_command</span> <span class="o">=</span> <span class="s1">&#39;update notifications set room_number=?, guest_name=?, notification=? where id=?&#39;</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql_command</span><span class="p">,</span> <span class="p">[</span><span class="n">numer_pokoju</span><span class="p">,</span><span class="n">nazwisko_zlgaszajacego</span><span class="p">,</span><span class="n">notatka</span><span class="p">,</span><span class="n">notification_id</span><span class="p">])</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;notifications&#39;</span><span class="p">))</span></div>
+
+            
+        
+        
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Marek.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

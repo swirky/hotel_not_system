@@ -1,0 +1,47 @@
+{% extends "baza.html" %}
+{%from "macros.html" import show_flash%}
+{%block title%}
+Nowy użytkownik
+{%endblock%}
+
+{% block content %}
+
+{{ show_flash() }}
+<div class="container">
+  <div class="row mb-3">
+    <div class="col-5 h1">New user</div>
+  </div>
+  <form id="user_form" action="{{ url_for('new_user') }}" method="POST">
+    <div class="row mb-3">
+      <div class="col-1 col-form-label">
+        <label for="user_name">User name</label>
+      </div>
+      <div class="col-4">
+        <input type="text" id="user_name" name="user_name" value="{{ user.user_name }}" class="form-control"><br>
+      </div>
+    </div>
+    <div class="row mb-3">
+      <div class="col-1 col-form-label">
+        <label for="user_pass">Password</label>
+      </div>
+      <div class="col-4">
+        <input type="password" id="user_password" name="user_password" class="form-control"><br>
+      </div>
+    </div>
+    <div class="row mb-3">
+      <div class="col-1 col-form-label">
+        <label for="user_pass">User Type ("admin" or "standard") </label>
+      </div>
+      <div class="col-4">
+        <input type="text" id="user_type" name="user_type" class="form-control"><br>
+      </div>
+    </div>
+    <div class="row mb-3">
+      <div class="col-1"></div>
+      <div class="col-2">
+        <input type="submit" value="Send" class="btn btn-primary">
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

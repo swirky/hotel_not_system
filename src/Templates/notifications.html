@@ -1,0 +1,53 @@
+{%extends "baza.html"%}
+{%from "macros.html" import show_flash %} 
+
+{%block title%}
+Lista zgłoszeń
+{%endblock%}
+
+{% block content %}
+{{ show_flash() }}
+<br>
+<h2>Twoje aktywne zgłoszenia</h2>
+<table class="table table-bordered table-light" style="max-width: 100%; width: 100%;">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Numer Pokoju</th>
+            <th>Nazwisko Gościa</th>
+            <th>Treść</th>
+            <th>Priorytet</th>
+            <th>Autor zgłoszenia</th>
+            <th>Operacje</th>
+        </tr>
+    </thead>
+    <tbody>
+        {%for zgloszenie in zgloszenia%}
+        <tr>
+            <td>{{zgloszenie.id}}</td>
+            <td>{{zgloszenie.room_number}}</td>
+            <td>{{zgloszenie.guest_name}}</td>
+            <td>{{zgloszenie.notification}}</td>
+            <td style="color: {% if zgloszenie.priority == 'high' %}red{% elif zgloszenie.priority == 'medium' %}blue{% else %}black{% endif %};">{{ zgloszenie.priority }}</td>
+
+            {%if login.is_admin %}
+                <td>{{zgloszenie.name}}</td>
+            {%else%}
+                <td>{{login.user}}</td>
+            {%endif%}
+            <td>
+                <form action="{{url_for('edition',notification_id=zgloszenie.id)}}" method="get" style="display: inline;">
+                    <button type='submit' class="btn btn-success btn-sm">Edit</button>  
+                </form>
+                <form action="{{url_for('delete_not',notification_id=zgloszenie.id)}}" method="post" style="display: inline;">
+                <button type='submit' class="btn btn-danger btn-sm">Delete</button>  
+                </form>
+            </td>
+        </tr>
+        {%endfor%}
+       
+    </tbody>
+</table>
+
+
+{%endblock%}

@@ -1,0 +1,37 @@
+{% extends "baza.html" %}
+{%from "macros.html" import show_flash%}
+
+{%block title%}
+Formularz zgłoszenia
+{%endblock%}
+
+{% block content %}
+{{ show_flash() }}
+<br>
+<h2>Wypełnij swoje zgłoszenie(skargę,uwagę lub inną informację dla hotelu)</h2>
+
+<form id="form" action = "{{ url_for('form') }}" method="POST">
+    <label for="room_number">Numer pokoju</label> <br>
+    <input type="text" id="room_number" name="numer_pokoju"><br>
+
+    <label for="guest_number">Nazwisko zgłaszającego</label> <br>
+    <input type="text" id="guest_number" name="nazwa_goscia"><br>
+
+    <label for="wybor">Wybierz priorytet:</label> <br>
+    
+    <select id="wybor" name="priorytet"> <br>
+        <option value="high">High</option>
+        <option value="medium">medium</option>
+        <option value="low">NOT URGENT</option>
+  
+    </select> <br>
+
+
+    <label for="notification">Treść zgłoszenia</label> <br>
+    <textarea id="notification" name="skarga" cols="50" rows="4"></textarea><br>
+
+    <input type="submit" value="Wyslij">
+
+</form>    
+
+{% endblock %}
